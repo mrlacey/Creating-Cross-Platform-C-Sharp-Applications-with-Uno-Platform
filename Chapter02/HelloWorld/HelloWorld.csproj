@@ -1,0 +1,79 @@
+<Project Sdk="Uno.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0-browserwasm;net8.0-desktop</TargetFrameworks>
+
+		<OutputType>Exe</OutputType>
+		<UnoSingleProject>true</UnoSingleProject>
+
+		<!-- Display name -->
+		<ApplicationTitle>HelloWorld</ApplicationTitle>
+		<!-- App identifier -->
+		<ApplicationId>com.companyname.HelloWorld</ApplicationId>
+
+		<!-- Versions -->
+		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+		<ApplicationVersion>1</ApplicationVersion>
+
+		<!-- Required for C# Hot Reload -->
+		<UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
+
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!--
+		If you encounter this error message:
+
+			error NETSDK1148: A referenced assembly was compiled with a newer version of Microsoft.Windows.SDK.NET.dll.
+			Please update to a newer .NET SDK in order to reference this assembly.
+
+		This means that the two packages below must be aligned with the "build" version in your global.json file
+		-->
+		<WindowsSdkPackageVersion>10.0.19041.38</WindowsSdkPackageVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-windows10.0.19041'">
+		<OutputType>WinExe</OutputType>
+		<UseWinUI>true</UseWinUI>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Logging" />
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+		<PackageReference Include="Uno.WinUI" />
+		<PackageReference Include="Uno.WinUI.RemoteControl" Condition="'$(Configuration)'=='Debug'" />
+		<PackageReference Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" />
+		<PackageReference Include="Uno.Extensions.Logging.WinUI" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\HelloWorld.Helpers\HelloWorld.Helpers.csproj" />
+	</ItemGroup>
+
+	<Choose>
+		<When Condition="$(IsAndroid)">
+			<ItemGroup>
+				<PackageReference Include="Uno.UniversalImageLoader" />
+			</ItemGroup>
+		</When>
+		<When Condition="$(IsWebAssembly)">
+			<ItemGroup>
+				<PackageReference Include="Uno.Extensions.Logging.WebAssembly.Console" />
+			</ItemGroup>
+		</When>
+		<When Condition="$(IsIOS)">
+			<ItemGroup>
+				<PackageReference Include="Uno.Extensions.Logging.OSLog" />
+			</ItemGroup>
+		</When>
+		<When Condition="$(IsWindows)">
+			<ItemGroup>
+				<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+			</ItemGroup>
+		</When>
+		<Otherwise>
+			<ItemGroup>
+				<PackageReference Include="Microsoft.Extensions.Logging.Console" />
+			</ItemGroup>
+		</Otherwise>
+	</Choose>
+</Project>

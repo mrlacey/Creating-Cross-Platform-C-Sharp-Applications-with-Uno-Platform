@@ -1,6 +1,6 @@
 <Project Sdk="Uno.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst;net8.0-windows10.0.19041;net8.0-browserwasm;net8.0-desktop</TargetFrameworks>
+		<TargetFrameworks>net8.0-browserwasm;net8.0-desktop</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<UnoSingleProject>true</UnoSingleProject>
@@ -39,41 +39,17 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging" />
 		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
-		<PackageReference Include="Uno.WinUI" />
-		<PackageReference Include="Uno.WinUI.RemoteControl" Condition="'$(Configuration)'=='Debug'" />
-		<PackageReference Include="Uno.UI.Adapter.Microsoft.Extensions.Logging" />
-		<PackageReference Include="Uno.Extensions.Logging.WinUI" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\HelloWorld.Helpers\HelloWorld.Helpers.csproj" />
 	</ItemGroup>
 
-	<Choose>
-		<When Condition="$(IsAndroid)">
-			<ItemGroup>
-				<PackageReference Include="Uno.UniversalImageLoader" />
-			</ItemGroup>
-		</When>
-		<When Condition="$(IsWebAssembly)">
-			<ItemGroup>
-				<PackageReference Include="Uno.Extensions.Logging.WebAssembly.Console" />
-			</ItemGroup>
-		</When>
-		<When Condition="$(IsIOS)">
-			<ItemGroup>
-				<PackageReference Include="Uno.Extensions.Logging.OSLog" />
-			</ItemGroup>
-		</When>
-		<When Condition="$(IsWindows)">
-			<ItemGroup>
-				<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
-			</ItemGroup>
-		</When>
-		<Otherwise>
-			<ItemGroup>
-				<PackageReference Include="Microsoft.Extensions.Logging.Console" />
-			</ItemGroup>
-		</Otherwise>
-	</Choose>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-browserwasm'">
+		<!-- Logging packages are handled by Uno.Sdk implicitly -->
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-desktop'">
+		<!-- Logging packages are handled by Uno.Sdk implicitly -->
+	</ItemGroup>
 </Project>

@@ -46,7 +46,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\HelloWorld.Helpers\HelloWorld.Helpers.csproj" />
+	  <ProjectReference Include="..\HelloWorld.Helpers\HelloWorld.Helpers.csproj" />
 	</ItemGroup>
 
 	<Choose>

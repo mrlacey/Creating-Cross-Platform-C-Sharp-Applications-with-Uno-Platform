@@ -1,168 +1,135 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
+﻿using System;
+using Microsoft.Extensions.Logging;
+using Uno.Resizetizer;
 
-namespace HelloWorld
+namespace HelloWorld;
+
+/// <summary>
+/// Provides application-specific behavior to supplement the default Application class.
+/// </summary>
+public partial class App : Application
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
-    public sealed partial class App : Application
-    {
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        public App()
-        {
-            InitializeLogging();
+	/// <summary>
+	/// Initializes the singleton application object. This is the first line of authored code
+	/// executed, and as such is the logical equivalent of main() or WinMain().
+	/// </summary>
+	public App()
+	{
+		this.InitializeComponent();
+	}
 
-            this.InitializeComponent();
+	protected Window? MainWindow { get; private set; }
 
-#if HAS_UNO || NETFX_CORE
-            this.Suspending += OnSuspending;
-#endif
-        }
-
-        /// <summary>
-        /// Invoked when the application is launched normally by the end user.  Other entry points
-        /// will be used such as when the application is launched to open a specific file.
-        /// </summary>
-        /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs e)
-        {
+	protected override void OnLaunched(LaunchActivatedEventArgs args)
+	{
+		MainWindow = new Window();
 #if DEBUG
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                // this.DebugSettings.EnableFrameRateCounter = true;
-            }
+		MainWindow.UseStudio();
 #endif
 
-#if NET5_0 && WINDOWS
-            var window = new Window();
-            window.Activate();
-#else
-            var window = Microsoft.UI.Xaml.Window.Current;
-#endif
+		// Do not repeat app initialization when the Window already has content,
+		// just ensure that the window is active
+		if (MainWindow.Content is not Frame rootFrame)
+		{
+			// Create a Frame to act as the navigation context and navigate to the first page
+			rootFrame = new Frame();
 
-            var rootFrame = window.Content as Frame;
+			// Place the frame in the current Window
+			MainWindow.Content = rootFrame;
 
-            // Do not repeat app initialization when the Window already has content,
-            // just ensure that the window is active
-            if (rootFrame == null)
-            {
-                // Create a Frame to act as the navigation context and navigate to the first page
-                rootFrame = new Frame();
+			rootFrame.NavigationFailed += OnNavigationFailed;
+		}
 
-                rootFrame.NavigationFailed += OnNavigationFailed;
+		if (rootFrame.Content == null)
+		{
+			// When the navigation stack isn't restored navigate to the first page,
+			// configuring the new page by passing required information as a navigation
+			// parameter
+			rootFrame.Navigate(typeof(MainPage), args.Arguments);
+		}
 
-                // Place the frame in the current Window
-                window.Content = rootFrame;
-            }
+		MainWindow.SetWindowIcon();
+		// Ensure the current window is active
+		MainWindow.Activate();
+	}
 
-            if (rootFrame.Content == null)
-            {
-                // When the navigation stack isn't restored navigate to the first page,
-                // configuring the new page by passing required information as a navigation
-                // parameter
-                rootFrame.Navigate(typeof(MainPage), e.Arguments);
-            }
-            // Ensure the current window is active
-            window.Activate();
-        }
+	/// <summary>
+	/// Invoked when Navigation to a certain page fails
+	/// </summary>
+	/// <param name="sender">The Frame which failed navigation</param>
+	/// <param name="e">Details about the navigation failure</param>
+	void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+	{
+		throw new InvalidOperationException($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
+	}
 
-        /// <summary>
-        /// Invoked when Navigation to a certain page fails
-        /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            throw new Exception($"Failed to load {e.SourcePageType.FullName}: {e.Exception}");
-        }
+	/// <summary>
+	/// Configures global Uno Platform logging
+	/// </summary>
+	public static void InitializeLogging()
+	{
+#if DEBUG
+		// Logging is disabled by default for release builds, as it incurs a significant
+		// initialization cost from Microsoft.Extensions.Logging setup. If startup performance
+		// is a concern for your application, keep this disabled. If you're running on the web or
+		// desktop targets, you can use URL or command line parameters to enable it.
+		//
+		// For more performance documentation: https://platform.uno/docs/articles/Uno-UI-Performance.html
 
-        /// <summary>
-        /// Invoked when application execution is being suspended.  Application state is saved
-        /// without knowing whether the application will be terminated or resumed with the contents
-        /// of memory still intact.
-        /// </summary>
-        /// <param name="sender">The source of the suspend request.</param>
-        /// <param name="e">Details about the suspend request.</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
-        {
-            var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: Save application state and stop any background activity
-            deferral.Complete();
-        }
-
-        /// <summary>
-        /// Configures global Uno Platform logging
-        /// </summary>
-        private static void InitializeLogging()
-        {
-            var factory = LoggerFactory.Create(builder =>
-            {
+		var factory = LoggerFactory.Create(builder =>
+		{
 #if __WASM__
-                builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
+            builder.AddProvider(new global::Uno.Extensions.Logging.WebAssembly.WebAssemblyConsoleLoggerProvider());
 #elif __IOS__
-                builder.AddProvider(new global::Uno.Extensions.Logging.OSLogLoggerProvider());
-#elif NETFX_CORE
-                builder.AddDebug();
+            builder.AddProvider(new global::Uno.Extensions.Logging.OSLogLoggerProvider());
+
+            // Log to the Visual Studio Debug console
+            builder.AddConsole();
 #else
-                builder.AddConsole();
+			builder.AddConsole();
 #endif
 
-                // Exclude logs below this level
-                builder.SetMinimumLevel(LogLevel.Information);
+			// Exclude logs below this level
+			builder.SetMinimumLevel(LogLevel.Information);
 
-                // Default filters for Uno Platform namespaces
-                builder.AddFilter("Uno", LogLevel.Warning);
-                builder.AddFilter("Windows", LogLevel.Warning);
-                builder.AddFilter("Microsoft", LogLevel.Warning);
+			// Default filters for Uno Platform namespaces
+			builder.AddFilter("Uno", LogLevel.Warning);
+			builder.AddFilter("Windows", LogLevel.Warning);
+			builder.AddFilter("Microsoft", LogLevel.Warning);
 
-                // Generic Xaml events
-                // builder.AddFilter("Windows.UI.Xaml", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.VisualStateGroup", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.StateTriggerBase", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.UIElement", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.FrameworkElement", LogLevel.Trace );
+			// Generic Xaml events
+			// builder.AddFilter("Microsoft.UI.Xaml", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.VisualStateGroup", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.StateTriggerBase", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.UIElement", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.FrameworkElement", LogLevel.Trace );
 
-                // Layouter specific messages
-                // builder.AddFilter("Windows.UI.Xaml.Controls", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.Controls.Layouter", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.Controls.Panel", LogLevel.Debug );
+			// Layouter specific messages
+			// builder.AddFilter("Microsoft.UI.Xaml.Controls", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.Controls.Layouter", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.Controls.Panel", LogLevel.Debug );
 
-                // builder.AddFilter("Windows.Storage", LogLevel.Debug );
+			// builder.AddFilter("Windows.Storage", LogLevel.Debug );
 
-                // Binding related messages
-                // builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
-                // builder.AddFilter("Windows.UI.Xaml.Data", LogLevel.Debug );
+			// Binding related messages
+			// builder.AddFilter("Microsoft.UI.Xaml.Data", LogLevel.Debug );
+			// builder.AddFilter("Microsoft.UI.Xaml.Data", LogLevel.Debug );
 
-                // Binder memory references tracking
-                // builder.AddFilter("Uno.UI.DataBinding.BinderReferenceHolder", LogLevel.Debug );
+			// Binder memory references tracking
+			// builder.AddFilter("Uno.UI.DataBinding.BinderReferenceHolder", LogLevel.Debug );
 
-                // RemoteControl and HotReload related
-                // builder.AddFilter("Uno.UI.RemoteControl", LogLevel.Information);
+			// DevServer and HotReload related
+			// builder.AddFilter("Uno.UI.RemoteControl", LogLevel.Information);
 
-                // Debug JS interop
-                // builder.AddFilter("Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug );
-            });
+			// Debug JS interop
+			// builder.AddFilter("Uno.Foundation.WebAssemblyRuntime", LogLevel.Debug );
+		});
 
-            global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
-        }
-    }
+		global::Uno.Extensions.LogExtensionPoint.AmbientLoggerFactory = factory;
+
+#if HAS_UNO
+		global::Uno.UI.Adapter.Microsoft.Extensions.Logging.LoggingAdapter.Initialize();
+#endif
+#endif
+	}
 }

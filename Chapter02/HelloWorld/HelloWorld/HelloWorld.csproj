@@ -1,6 +1,6 @@
-<Project Sdk="Uno.Sdk">
+﻿<Project Sdk="Uno.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-browserwasm;net8.0-desktop</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-browserwasm;net9.0-desktop</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
 		<UnoSingleProject>true</UnoSingleProject>
@@ -13,43 +13,21 @@
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
-
-		<!-- Required for C# Hot Reload -->
-		<UseInterpreter Condition="'$(Configuration)' == 'Debug'">True</UseInterpreter>
-
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+		<!-- Package Publisher -->
+		
+		<ApplicationPublisher>matt</ApplicationPublisher>
+		<!-- Package Description -->
+		<Description>UnoApp1 powered by Uno Platform.</Description>
 
 		<!--
-		If you encounter this error message:
-
-			error NETSDK1148: A referenced assembly was compiled with a newer version of Microsoft.Windows.SDK.NET.dll.
-			Please update to a newer .NET SDK in order to reference this assembly.
-
-		This means that the two packages below must be aligned with the "build" version in your global.json file
-		-->
-		<WindowsSdkPackageVersion>10.0.19041.38</WindowsSdkPackageVersion>
+      UnoFeatures let's you quickly add and manage implicit package references based on the features you want to use.
+      https://aka.platform.uno/singleproject-features
+    -->
+		<UnoFeatures>
+			SkiaRenderer;
+		</UnoFeatures>
 	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-windows10.0.19041'">
-		<OutputType>WinExe</OutputType>
-		<UseWinUI>true</UseWinUI>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Logging" />
-		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
-	</ItemGroup>
-
 	<ItemGroup>
 	  <ProjectReference Include="..\HelloWorld.Helpers\HelloWorld.Helpers.csproj" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-browserwasm'">
-		<!-- Logging packages are handled by Uno.Sdk implicitly -->
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-desktop'">
-		<!-- Logging packages are handled by Uno.Sdk implicitly -->
 	</ItemGroup>
 </Project>
